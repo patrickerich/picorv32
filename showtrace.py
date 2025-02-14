@@ -7,7 +7,7 @@ elf_filename = sys.argv[2]
 
 insns = dict()
 
-with subprocess.Popen(["riscv32-unknown-elf-objdump", "-d", elf_filename], stdout=subprocess.PIPE) as proc:
+with subprocess.Popen(["/opt/riscv/bin/riscv64-unknown-elf-objdump", "-d", elf_filename], stdout=subprocess.PIPE) as proc:
     while True:
         line = proc.stdout.readline().decode("ascii")
         if line == '': break
@@ -18,7 +18,7 @@ with open(trace_filename, "r") as f:
     pc = -1
     last_irq = False
     for line in f:
-        raw_data = int(line.replace("x", "0"), 16)
+        raw_data = int(re.sub('[xX]', '0', line), 16)
         payload = raw_data & 0xffffffff
         irq_active = (raw_data & 0x800000000) != 0
         is_addr = (raw_data & 0x200000000) != 0
