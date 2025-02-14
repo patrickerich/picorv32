@@ -37,3 +37,6 @@
 .*.swp
 
 .vscode
+**/testbench.ins
+**/testbench.trace
+
