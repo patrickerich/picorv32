@@ -1,7 +1,9 @@
 USE_MYSTDLIB = 0
 OBJS = dhry_1.o dhry_2.o stdlib.o
 CFLAGS = -MD -O3 -mabi=ilp32 -march=rv32im -DTIME -DRISCV
-TOOLCHAIN_PREFIX = /opt/riscv32im/bin/riscv32-unknown-elf-
+TOOLCHAIN_PREFIX = /opt/riscv/bin/riscv64-unknown-elf-
+ICARUS_SUFFIX =
+VVP = vvp$(ICARUS_SUFFIX)
 
 ifeq ($(USE_MYSTDLIB),1)
 CFLAGS += -DUSE_MYSTDLIB -ffreestanding -nostdlib
@@ -10,22 +12,27 @@ else
 OBJS += syscalls.o
 endif
 
+
+
 test: testbench.vvp dhry.hex
-	vvp -N testbench.vvp
+	$(VVP) -N testbench.vvp
+
+test_vcd: testbench.vvp dhry.hex
+	$(VVP) -N $< +vcd +trace
 
 test_trace: testbench.vvp dhry.hex
-	vvp -N $< +trace
+	$(VVP) -N $< +trace
 	python3 ../showtrace.py testbench.trace dhry.elf > testbench.ins
 
 test_nola: testbench_nola.vvp dhry.hex
-	vvp -N testbench_nola.vvp
+	$(VVP) -N testbench_nola.vvp
 
 timing: timing.txt
 	grep '^##' timing.txt | gawk 'x != "" {print x,$$3-y;} {x=$$2;y=$$3;}' | sort | uniq -c | \
 		gawk '{printf("%03d-%-7s %2d %-8s (%d)\n",$$3,$$2,$$3,$$2,$$1);}' | sort | cut -c13-
 
 timing.txt: timing.vvp dhry.hex
-	vvp -N timing.vvp > timing.txt
+	$(VVP) -N timing.vvp > timing.txt
 
 testbench.vvp: testbench.v ../picorv32.v
 	iverilog -o testbench.vvp testbench.v ../picorv32.v
@@ -66,4 +73,5 @@ clean:
 .PHONY: test clean
 
 -include *.d
+
 
