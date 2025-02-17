@@ -49,7 +49,8 @@ Enumeration     Func_1 ();
 
 /* variables for time measurement: */
 
-#ifdef IGN_TIMES
+// #ifdef IGN_TIMES
+#ifdef TIMES
 struct tms      time_info;
 extern  int     times ();
                 /* see library function "times" */
@@ -132,7 +133,7 @@ main ()
   {
     // int n;
     // scanf ("%d", &n);
-    Number_Of_Runs = 100;
+    Number_Of_Runs = 10000;
   }
   printf ("\n");
 
@@ -268,27 +269,21 @@ main ()
   printf ("\n");
 
   User_Time = End_Time - Begin_Time;
-
 #ifdef RISCV
-  User_Insn = End_Insn - Begin_Insn;
+  long long User_Time_LL = End_Time - Begin_Time;
+  long long User_Insn_LL = End_Insn - Begin_Insn;
 
   printf("Number_Of_Runs: %d\n", Number_Of_Runs);
-  printf("User_Time: %d cycles, %d insn\n", User_Time, User_Insn);
+  printf("User_Time: %lld cycles, %lld insn\n", User_Time_LL, User_Insn_LL);
 
-  int Cycles_Per_Instruction_x1000 = (1000 * User_Time) / User_Insn;
-  printf("Cycles_Per_Instruction: %d.%d%d%d\n", Cycles_Per_Instruction_x1000 / 1000,
-		(Cycles_Per_Instruction_x1000 / 100) % 10,
-		(Cycles_Per_Instruction_x1000 / 10) % 10,
-		(Cycles_Per_Instruction_x1000 / 1) % 10);
+  float Cycles_Per_Instruction = (float)User_Time_LL / User_Insn_LL;
+  printf("Cycles/Instruction: %.3f\n", Cycles_Per_Instruction);
 
-  int Dhrystones_Per_Second_Per_MHz = (Number_Of_Runs * 1000000) / User_Time;
-  printf("Dhrystones_Per_Second_Per_MHz: %d\n", Dhrystones_Per_Second_Per_MHz);
+  float Dhrystones_Per_Second_Per_MHz = ((float)Number_Of_Runs * 1000000.0) / User_Time_LL;
+  printf("Dhrystones/MHz: %.1f\n", Dhrystones_Per_Second_Per_MHz);
 
-  int DMIPS_Per_MHz_x1000 = (1000 * Dhrystones_Per_Second_Per_MHz) / 1757;
-  printf("DMIPS_Per_MHz: %d.%d%d%d\n", DMIPS_Per_MHz_x1000 / 1000,
-		(DMIPS_Per_MHz_x1000 / 100) % 10,
-		(DMIPS_Per_MHz_x1000 / 10) % 10,
-		(DMIPS_Per_MHz_x1000 / 1) % 10);
+  float DMIPS_Per_MHz = Dhrystones_Per_Second_Per_MHz / 1757.0;
+  printf("DMIPS/MHz: %.3f\n", DMIPS_Per_MHz);
 #else
   if (User_Time < Too_Small_Time)
   {
@@ -299,11 +294,11 @@ main ()
   else
   {
 #ifdef TIME
-    Microseconds = (float) User_Time * Mic_secs_Per_Second
+    Microseconds = (float) User_Time * Mic_secs_Per_Second 
                         / (float) Number_Of_Runs;
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
 #else
-    Microseconds = (float) User_Time * Mic_secs_Per_Second
+    Microseconds = (float) User_Time * Mic_secs_Per_Second 
                         / ((float) HZ * ((float) Number_Of_Runs));
     Dhrystones_Per_Second = ((float) HZ * (float) Number_Of_Runs)
                         / (float) User_Time;
@@ -315,7 +310,6 @@ main ()
     printf ("\n");
   }
 #endif
-
 }
 
 
